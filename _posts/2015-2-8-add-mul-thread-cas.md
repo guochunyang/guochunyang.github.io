@@ -16,20 +16,21 @@ tags : [C++, Linux]
 #include <vector>
 #include <thread>
 #include <stdio.h>
+#include <memory>
 using namespace std;
 
 int g_count = 0;
 
 int main(int argc, const char *argv[])
 {
-    vector<thread*> ths;
+    vector<unique_ptr<thread>> ths;
     for (int i = 0; i < 100; i++) {
-        ths.push_back(new thread([]()
+        ths.push_back(unique_ptr<thread>(new thread([]()
                 {
                     for (int i = 0; i < 1000000; i++) {
                         ++g_count;
                     }
-                }));
+                })));
     }
 
     for(auto &f : ths)
@@ -99,6 +100,7 @@ mov DWORD PTR [text], eax
 #include <thread>
 #include <stdio.h>
 #include <mutex>
+#include <memory>
 using namespace std;
 
 int g_count = 0;
@@ -106,16 +108,16 @@ std::mutex g_lock;
 
 int main(int argc, const char *argv[])
 {
-    vector<thread*> ths;
+    vector<unique_ptr<thread>> ths;
     for (int i = 0; i < 100; i++) {
-        ths.push_back(new thread([]()
+        ths.push_back(unique_ptr<thread>(new thread([]()
                 {
                     for (int i = 0; i < 1000000; i++) {
                         g_lock.lock();
                         ++g_count;
                         g_lock.unlock();
                     }
-                }));
+                })));
     }
 
     for(auto &f : ths)
@@ -162,21 +164,22 @@ gcc提供了一组原子操作，参考http://gcc.gnu.org/onlinedocs/gcc-4.1.2/g
 #include <vector>
 #include <thread>
 #include <stdio.h>
+#include <memory>
 using namespace std;
 
 int g_count = 0;
 
 int main(int argc, const char *argv[])
 {
-    vector<thread*> ths;
+    vector<unique_ptr<thread>> ths;
     for (int i = 0; i < 100; i++) {
-        ths.push_back(new thread([]()
+        ths.push_back(unique_ptr<thread>(new thread([]()
                 {
                     for (int i = 0; i < 1000000; i++) {
                         //++g_count;
                         __sync_fetch_and_add(&g_count, 1);
                     }
-                }));
+                })));
     }
 
     for(auto &f : ths)
@@ -257,6 +260,7 @@ C++11也提供了原子操作，我们使用它的代码如下：
 #include <vector>
 #include <thread>
 #include <stdio.h>
+#include <memory>
 #include <atomic>
 using namespace std;
 
@@ -264,15 +268,15 @@ atomic_int g_count;
 
 int main(int argc, const char *argv[])
 {
-    vector<thread*> ths;
+    vector<unique_ptr<thread>> ths;
     for (int i = 0; i < 100; i++) {
-        ths.push_back(new thread([]()
+        ths.push_back(unique_ptr<thread>(new thread([]()
                 {
                     for (int i = 0; i < 1000000; i++) {
                         //++g_count;
                         ++g_count;
                     }
-                }));
+                })));
     }
 
     for(auto &f : ths)
@@ -284,6 +288,7 @@ int main(int argc, const char *argv[])
     printf("count = %d\n", g_count.load());
     return 0;
 }
+
 ```
 
 结果：
